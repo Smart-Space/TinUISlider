@@ -1,4 +1,4 @@
-# TinUISheet
+# TinUISlider
 
 [TinUI](https://github.com/Smart-Space/TinUI)的高级滑动条控件。
 
