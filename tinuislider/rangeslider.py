@@ -1,3 +1,5 @@
+from typing import Literal
+
 from tinui import BasicTinUI
 from tinui.TinUI import TinUIString
 
@@ -20,7 +22,7 @@ class RangeSlider:
         data=(1, 2, 3, 4, 5),
         start_left=None,
         start_right=None,
-        direction="x",
+        direction:Literal["x", "y"]="x",
         anchor="nw",
         command=None,
     ):
