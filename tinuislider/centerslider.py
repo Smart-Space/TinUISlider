@@ -36,6 +36,7 @@ class CenterSlider:
         self.direction = direction
         self.anchor = anchor
         self.command = command
+        self.scale_value = canvas.scale_value
         
         self.nowselect = 0
         if start is None:
@@ -66,11 +67,11 @@ class CenterSlider:
         half_width = self.width / 2
         # 计算背景线坐标
         if self.direction == "x":
-            back_coords = (self.pos[0] - half_width, self.pos[1] + 8, 
-                           self.pos[0] + half_width, self.pos[1] + 8)
+            back_coords = (self.pos[0] - half_width, self.pos[1] + self.scale_value(8), 
+                           self.pos[0] + half_width, self.pos[1] + self.scale_value(8))
         elif self.direction == "y":
-            back_coords = (self.pos[0] + 8, self.pos[1] + half_width, 
-                           self.pos[0] + 8, self.pos[1] - half_width)
+            back_coords = (self.pos[0] + self.scale_value(8), self.pos[1] + half_width, 
+                           self.pos[0] + self.scale_value(8), self.pos[1] - half_width)
         else:
             # 仅这一处提醒
             raise ValueError("Direction must be 'x' or 'y'")
@@ -78,7 +79,7 @@ class CenterSlider:
         self.back = self.canvas.create_line(
             back_coords,
             fill=self.bg,
-            width=3,
+            width=self.scale_value(3,True),
             capstyle="round",
         )
         
@@ -110,23 +111,24 @@ class CenterSlider:
         self.button = f"scalebutton_center-{self.back}"
         
         btn_tags = (self.uid, self.button)
+        button_pos = (init_pos + self.scale_value(8), self.pos[1] + self.scale_value(8)) if self.direction == "x" else (self.pos[0] + self.scale_value(8), init_pos + self.scale_value(8))
         
         self.canvas.create_text(
-            (init_pos + 9, self.pos[1] + 9) if self.direction == "x" else (self.pos[0] + 8, init_pos + 9),
+            button_pos,
             text="\uf127",
             font="{Segoe Fluent Icons} 12",
             fill=self.buttonbg,
             tags=btn_tags,
         )
         self.canvas.create_text(
-            (init_pos + 9, self.pos[1] + 9) if self.direction == "x" else (self.pos[0] + 8, init_pos + 9),
+            button_pos,
             text="\uecca",
             font="{Segoe Fluent Icons} 12",
             fill=self.buttonoutline,
             tags=btn_tags,
         )
         self.button_fore = self.canvas.create_text(
-            (init_pos + 9, self.pos[1] + 9) if self.direction == "x" else (self.pos[0] + 8, init_pos + 9),
+            button_pos,
             text="\ue915",
             font="{Segoe Fluent Icons} 12",
             fill=self.fg,
@@ -143,17 +145,17 @@ class CenterSlider:
         # 激活线
         if self.direction == "x":
             self.active = self.canvas.create_line(
-                (self.pos[0], self.pos[1] + 8, init_pos, self.pos[1] + 8),
+                (self.pos[0], self.pos[1] + self.scale_value(8), init_pos, self.pos[1] + self.scale_value(8)),
                 fill=self.fg,
-                width=3,
+                width=self.scale_value(3,True),
                 tags=self.uid,
                 capstyle="round",
             )
         else:
             self.active = self.canvas.create_line(
-                (self.pos[0] + 8, self.pos[1], self.pos[0] + 8, init_pos),
+                (self.pos[0] + self.scale_value(8), self.pos[1], self.pos[0] + self.scale_value(8), init_pos),
                 fill=self.fg,
-                width=3,
+                width=self.scale_value(3,True),
                 tags=self.uid,
                 capstyle="round",
             )
@@ -210,12 +212,12 @@ class CenterSlider:
         half_width = self.width / 2
         if self.direction == "x":
             self.canvas.coords(self.back, 
-                               self.pos[0] - half_width, self.pos[1] + 8, 
-                               self.pos[0] + half_width, self.pos[1] + 8)
+                               self.pos[0] - half_width, self.pos[1] + self.scale_value(8), 
+                               self.pos[0] + half_width, self.pos[1] + self.scale_value(8))
         else:
             self.canvas.coords(self.back, 
-                               self.pos[0] + 8, self.pos[1] + half_width, 
-                               self.pos[0] + 8, self.pos[1] - half_width)
+                               self.pos[0] + self.scale_value(8), self.pos[1] + half_width, 
+                               self.pos[0] + self.scale_value(8), self.pos[1] - half_width)
 
     def _mousedown(self, event):
         """鼠标按下"""
@@ -238,7 +240,7 @@ class CenterSlider:
                 return
             self.canvas.move(self.button, move, 0)
             # 更新激活线 (从中心 pos[0] 到 current_pos)
-            self.canvas.coords(self.active, self.pos[0], self.pos[1] + 8, current_pos, self.pos[1] + 8)
+            self.canvas.coords(self.active, self.pos[0], self.pos[1] + self.scale_value(8), current_pos, self.pos[1] + self.scale_value(8))
             self.startpos = current_pos
         else:
             current_pos = self.canvas.canvasy(event.y)
@@ -246,7 +248,7 @@ class CenterSlider:
             if current_pos < min_limit or current_pos > max_limit:
                 return
             self.canvas.move(self.button, 0, move)
-            self.canvas.coords(self.active, self.pos[0] + 8, self.pos[1], self.pos[0] + 8, current_pos)
+            self.canvas.coords(self.active, self.pos[0] + self.scale_value(8), self.pos[1], self.pos[0] + self.scale_value(8), current_pos)
             self.startpos = current_pos
 
     def _check(self, _):
@@ -278,13 +280,13 @@ class CenterSlider:
         if self.direction == "x":
             move = self.canvas.canvasx(event.x)
             # 更新激活线视觉
-            self.canvas.coords(self.active, self.pos[0], self.pos[1] + 8, move, self.pos[1] + 8)
+            self.canvas.coords(self.active, self.pos[0], self.pos[1] + self.scale_value(8), move, self.pos[1] + self.scale_value(8))
             # 移动按钮
             bbox = self.canvas.coords(self.button)
             self.canvas.move(self.button, move - bbox[0], 0)
         else:
             move = self.canvas.canvasy(event.y)
-            self.canvas.coords(self.active, self.pos[0] + 8, self.pos[1], self.pos[0] + 8, move)
+            self.canvas.coords(self.active, self.pos[0] + self.scale_value(8), self.pos[1], self.pos[0] + self.scale_value(8), move)
             bbox = self.canvas.coords(self.button)
             self.canvas.move(self.button, 0, move - bbox[1])
         self._check(None)
@@ -300,11 +302,11 @@ class CenterSlider:
             move_x = target_pos - curr_coords[0]
             self.canvas.move(self.button, move_x, 0)
             # 更新激活线
-            self.canvas.coords(self.active, self.pos[0], self.pos[1] + 8, target_pos, self.pos[1] + 8)
+            self.canvas.coords(self.active, self.pos[0], self.pos[1] + self.scale_value(8), target_pos, self.pos[1] + self.scale_value(8))
         else:
             move_y = target_pos - curr_coords[1]
             self.canvas.move(self.button, 0, move_y)
-            self.canvas.coords(self.active, self.pos[0] + 8, self.pos[1], self.pos[0] + 8, target_pos)
+            self.canvas.coords(self.active, self.pos[0] + self.scale_value(8), self.pos[1], self.pos[0] + self.scale_value(8), target_pos)
             
         if self.command and send:
             self.command(self.data[num])
@@ -335,6 +337,9 @@ class CenterSlider:
 
 
 if __name__ == "__main__":
+    # from ctypes import windll
+    # windll.shcore.SetProcessDpiAwareness(2) # 高DPI适配
+    # scale_factor = windll.shcore.GetScaleFactorForDevice(0) / 100
     from tkinter import Tk
     from tinui import ExpandPanel, VerticalPanel
     def on_resize(event):
@@ -342,6 +347,7 @@ if __name__ == "__main__":
     r=Tk()
 
     ui=BasicTinUI(r)
+    # ui.set_scale(scale_factor)
     ui.pack(fill='both',expand=True)
 
     slider = CenterSlider(

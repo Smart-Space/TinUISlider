@@ -38,6 +38,7 @@ class RangeSlider:
         self.direction = direction
         self.anchor = anchor
         self.command = command
+        self.scale_value = canvas.scale_value
 
         # 初始索引
         self.left_index = 0 if start_left is None else start_left
@@ -67,20 +68,20 @@ class RangeSlider:
         half = self.width / 2
         if self.direction == "x":
             back_coords = (
-                self.pos[0] - half, self.pos[1] + 8,
-                self.pos[0] + half, self.pos[1] + 8,
+                self.pos[0] - half, self.pos[1] + self.scale_value(8),
+                self.pos[0] + half, self.pos[1] + self.scale_value(8),
             )
         elif self.direction == "y":
             back_coords = (
-                self.pos[0] + 8, self.pos[1] + half,
-                self.pos[0] + 8, self.pos[1] - half,
+                self.pos[0] + self.scale_value(8), self.pos[1] + half,
+                self.pos[0] + self.scale_value(8), self.pos[1] - half,
             )
         else:
             raise ValueError("direction must be 'x' or 'y'")
 
         self.back = self.canvas.create_line(
             back_coords,
-            fill=self.bg, width=3, capstyle="round"
+            fill=self.bg, width=self.scale_value(3,True), capstyle="round"
         )
         self.uid = TinUIString(f"rangeslider-{self.back}")
         self.uid.layout = self.__layout
@@ -104,7 +105,7 @@ class RangeSlider:
 
     def _create_button(self, pos, tag):
         tags = (self.uid, tag)
-        button_pos = (pos + 9, self.pos[1] + 9) if self.direction == "x" else (self.pos[0] + 8, pos + 9)
+        button_pos = (pos + self.scale_value(8), self.pos[1] + self.scale_value(8)) if self.direction == "x" else (self.pos[0] + self.scale_value(8), pos + self.scale_value(8))
 
         self.canvas.create_text(button_pos,
             text="\uf127", font="{Segoe Fluent Icons} 12",
@@ -126,13 +127,13 @@ class RangeSlider:
         rpos = self.dash[self.right_index]
 
         if self.direction == "x":
-            active_coords = (lpos, self.pos[1] + 8, rpos, self.pos[1] + 8)
+            active_coords = (lpos, self.pos[1] + self.scale_value(8), rpos, self.pos[1] + self.scale_value(8))
         else:
-            active_coords = (self.pos[0] + 8, lpos, self.pos[0] + 8, rpos)
+            active_coords = (self.pos[0] + self.scale_value(8), lpos, self.pos[0] + self.scale_value(8), rpos)
 
         self.active = self.canvas.create_line(
             active_coords,
-            fill=self.fg, width=3, capstyle="round",
+            fill=self.fg, width=self.scale_value(3,True), capstyle="round",
             tags=self.uid
         )
         
@@ -196,14 +197,14 @@ class RangeSlider:
         if self.direction == "x":
             self.canvas.coords(
                 self.back,
-                self.pos[0] - half, self.pos[1] + 8,
-                self.pos[0] + half, self.pos[1] + 8,
+                self.pos[0] - half, self.pos[1] + self.scale_value(8),
+                self.pos[0] + half, self.pos[1] + self.scale_value(8),
             )
         else:
             self.canvas.coords(
                 self.back,
-                self.pos[0] + 8, self.pos[1] + half,
-                self.pos[0] + 8, self.pos[1] - half,
+                self.pos[0] + self.scale_value(8), self.pos[1] + half,
+                self.pos[0] + self.scale_value(8), self.pos[1] - half,
             )
 
         self._update_buttons()
@@ -305,9 +306,9 @@ class RangeSlider:
         r = self._get_button_pos(self.right_button)
 
         if self.direction == "x":
-            self.canvas.coords(self.active, l, self.pos[1] + 8, r, self.pos[1] + 8)
+            self.canvas.coords(self.active, l, self.pos[1] + self.scale_value(8), r, self.pos[1] + self.scale_value(8))
         else:
-            self.canvas.coords(self.active, self.pos[0] + 8, l, self.pos[0] + 8, r)
+            self.canvas.coords(self.active, self.pos[0] + self.scale_value(8), l, self.pos[0] + self.scale_value(8), r)
 
     def _send(self):
         if self.command:
@@ -348,6 +349,9 @@ class RangeSlider:
 
 
 if __name__ == "__main__":
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(2) # 高DPI适配
+    scale_factor = windll.shcore.GetScaleFactorForDevice(0) / 100
     from tkinter import Tk
     from tinui import ExpandPanel, VerticalPanel
     def on_resize(event):
@@ -359,6 +363,7 @@ if __name__ == "__main__":
     root.geometry("400x200")
 
     ui = BasicTinUI(root)
+    ui.set_scale(scale_factor)
     ui.pack(fill="both", expand=True)
 
     slider = RangeSlider(
